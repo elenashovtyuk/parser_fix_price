@@ -2,6 +2,7 @@ import scrapy
 
 
 class ProductItem(scrapy.Item):
+    """Модель извлечения информации о товаре."""
     timestamp = scrapy.Field()
     rpc = scrapy.Field()
     url = scrapy.Field()
