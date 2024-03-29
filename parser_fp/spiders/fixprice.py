@@ -71,7 +71,12 @@ class FixpriceSpider(scrapy.Spider):
                 'video': ''
             },
             'metadata': {
-                'description': response.css('div.product-details div.description ::text').get(),
+                'description': response.css('div.product-details div.description::text').get(),
+                'country': response.css('div.properties p.property span.value::text').getall()[-1],
+                'weight': response.css('div.properties p.property span.value::text').getall()[-2],
+                'length_mm': response.css('div.properties p.property span.value::text').getall()[-3],
+                'height_mm': response.css('div.properties p.property span.value::text').getall()[-4],
+                'wight_mm': response.css('div.properties p.property span.value::text').getall()[3]
             }
 
         }
