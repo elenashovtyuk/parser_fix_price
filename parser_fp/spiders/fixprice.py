@@ -49,9 +49,34 @@ class FixpriceSpider(scrapy.Spider):
         Возвращает ее в виде объекта Item согласно заданному шаблону
         """
         products_data = {
-            'title': response.css('h1.title::text').get()
+            'rpc': response.css('p.property span.value::text').get(),
+            'url': response.css('div.description a.title::attr(href)').get(),
+            'title': response.css('h1.title::text').get(),
+            'marketing_tags': response.css('div.isSpecialPrice::text').get(default=""),
+            'brand': response.css('p.property a.link::text').get(),
+            'section': response.css('div.breadcrumbs span::text').getall()[:-1],
+            # 'price': {
+            #     'current': response.css('div.price-in-cart .special-price::text').get(),
+            #     'original': response.css('div.price-in-cart .old-price::text').get(),
+            #     'sale_tag': ''
+            # },
+            # 'stock': {
+            #     'in_stock': '',
+            #     'count': ''
+            # },
+            'assets': {
+                'main_image': response.css('div.zoom-on-hover link::attr(href)').get(),
+                'set_images': response.css('.product-images .swiper-slide link::attr(href)').getall(),
+                'view360': '',
+                'video': ''
+            },
+            'metadata': {
+                'description': response.css('div.product-details div.description ::text').get(),
+            }
+
         }
         yield ProductItem(products_data)
+
 
 
 
