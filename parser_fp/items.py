@@ -4,7 +4,7 @@ import scrapy
 class ProductItem(scrapy.Item):
     """Модель извлечения информации о товаре."""
     timestamp = scrapy.Field()
-    rpc = scrapy.Field()
+    RPC = scrapy.Field()
     url = scrapy.Field()
     title = scrapy.Field()
     marketing_tags = scrapy.Field()

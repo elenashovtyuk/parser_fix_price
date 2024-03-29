@@ -49,21 +49,22 @@ class FixpriceSpider(scrapy.Spider):
         Возвращает ее в виде объекта Item согласно заданному шаблону
         """
         products_data = {
-            'rpc': response.css('p.property span.value::text').get(),
+            'timestamp': '',
+            'RPC': response.css('p.property span.value::text').get(),
             'url': response.css('div.description a.title::attr(href)').get(),
             'title': response.css('h1.title::text').get(),
             'marketing_tags': response.css('div.isSpecialPrice::text').get(default=""),
             'brand': response.css('p.property a.link::text').get(),
             'section': response.css('div.breadcrumbs span::text').getall()[:-1],
-            # 'price': {
-            #     'current': response.css('div.price-in-cart .special-price::text').get(),
-            #     'original': response.css('div.price-in-cart .old-price::text').get(),
-            #     'sale_tag': ''
-            # },
-            # 'stock': {
-            #     'in_stock': '',
-            #     'count': ''
-            # },
+            'price_data': {
+                'current': response.css('div.price-in-cart .special-price::text').get(),
+                'original': response.css('div.price-in-cart .old-price::text').get(),
+                'sale_tag': ''
+            },
+            'stock': {
+                'in_stock': '',
+                'count': ''
+            },
             'assets': {
                 'main_image': response.css('div.zoom-on-hover link::attr(href)').get(),
                 'set_images': response.css('.product-images .swiper-slide link::attr(href)').getall(),
@@ -72,12 +73,14 @@ class FixpriceSpider(scrapy.Spider):
             },
             'metadata': {
                 'description': response.css('div.product-details div.description::text').get(),
-                'country': response.css('div.properties p.property span.value::text').getall()[-1],
+                'SKU': response.css('p.property span.value::text').get(),
+                'wigth': response.css('div.properties p.property span.value::text').getall()[3],
+                'height': response.css('div.properties p.property span.value::text').getall()[-4],
+                'length': response.css('div.properties p.property span.value::text').getall()[-3],
                 'weight': response.css('div.properties p.property span.value::text').getall()[-2],
-                'length_mm': response.css('div.properties p.property span.value::text').getall()[-3],
-                'height_mm': response.css('div.properties p.property span.value::text').getall()[-4],
-                'wight_mm': response.css('div.properties p.property span.value::text').getall()[3]
-            }
+                'country': response.css('div.properties p.property span.value::text').getall()[-1]
+            },
+            'variants': ''
 
         }
         yield ProductItem(products_data)
