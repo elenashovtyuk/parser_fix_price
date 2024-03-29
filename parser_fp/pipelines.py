@@ -6,8 +6,19 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+import json
 
 
 class ParserFpPipeline:
+
     def process_item(self, item, spider):
-        return item
+        for value in item:
+            line = json.dumps(dict(item)) + "\n"
+            self.file.write(line)
+            return item
+
+    def open_spider(self, spider):
+        self.file = open('fix.json', 'w')
+
+    def close_spider(self, spider):
+        self.file.close()
