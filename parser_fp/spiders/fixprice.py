@@ -27,7 +27,7 @@ class FixpriceSpider(scrapy.Spider):
         Собирает ссылки на каждый товар из карточек товара.
         Передает их в метод parse_product для получения информации о продукте.
         """
-        # получаем div с карточками продуктов
+        # div с карточками продуктов
         cards = response.css('div.product__wrapper')
 
         product_urls = []
