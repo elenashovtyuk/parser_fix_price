@@ -11,6 +11,7 @@ class FixpriceSpider(scrapy.Spider):
         "https://fix-price.com/catalog/kosmetika-i-gigiena/gigienicheskie-sredstva",
         "https://fix-price.com/catalog/krasota-i-zdorove/dlya-tela"
     ]
+    data = []
 
     def start_requests(self):
         """
@@ -23,7 +24,8 @@ class FixpriceSpider(scrapy.Spider):
     def parse_link(self, response):
         """
         Метод обратного вызова.
-        Извлекает ссылки на каждый товар из карточек товара.
+        Собирает ссылки на каждый товар из карточек товара.
+        Передает их в метод parse_product для получения информации о продукте.
         """
         # получаем div с карточками продуктов
         cards = response.css('div.product__wrapper')
@@ -31,12 +33,12 @@ class FixpriceSpider(scrapy.Spider):
         product_urls = []
         # из каждой карточки в div достаем ссылку на адрес страницы продукта
         for card in cards:
-            product_url = response.css(
+            product_url = card.css(
                 'div.product__wrapper a.title::attr(href)').get()
             # и добавляем ее в список с ссылками product_urls
             product_urls.append(urllib.parse.urljoin(base='https://fix-price.com', url=product_url))
-            # далее передаем объект Request по каждому адресу(по каждой ссылке на отдельный товар
-            # в метод обратного вызова parse_product
+
+            # передаем в метод parse_product объект Request по каждому адресу
             for url in product_urls:
                 yield scrapy.Request(url=url, callback=self.parse_product)
 
@@ -44,9 +46,8 @@ class FixpriceSpider(scrapy.Spider):
         """
         Метод обратного вызова.
         Извлекает информацию о каждом товаре c его страницы.
+        Возвращает ее в виде объекта Item согласно заданному шаблону
         """
-        #data_products = []
-
         products_data = {
             'title': response.css('h1.title::text').get()
         }
@@ -57,10 +58,11 @@ class FixpriceSpider(scrapy.Spider):
 
 
 
- # next_page = response.css('a.next::attr(href)').get()
-        # yield response.follow(next_page, callback=self.parse_product)
-        #     # если же кол-во ссылок достигло 70, то работаем с каждой ссылкой
-        #     # для получения информации о каждом продукте в следующем методе
-        #     # - parse_product
-        #     # for url in self.product_urls:
-        #     #     yield scrapy.Request(url=url, callback=self.parse_product)
+            # # если кол-во ссылок в списке меньше 70
+            # #  то находим ссылку на следующую страницу и повторяем все действия метода parse_link
+            # # для нее(если следующая страница есть)
+            # if len(product_urls) < 70:
+            #     next_page = card.css('a.next::attr(href)').get()
+            #     if next_page:
+            #         yield response.follow(next_page, callback=self.parse_link)
+            # # в противном случае (если ссылок 70 и больше
