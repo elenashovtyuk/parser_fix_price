@@ -92,9 +92,10 @@ REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
-FEEDS = {
-    'data.json': {'format': 'json', 'overwrite': True}
-}
 ITEM_PIPELINES = {
     "parser_fp.pipelines.ParserFpPipeline": 300
 }
+
+FEED_FORMAT = "json"
+
+FEED_URI = "fixprice_data.json"
