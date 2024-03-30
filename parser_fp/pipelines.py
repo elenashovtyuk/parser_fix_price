@@ -1,4 +1,3 @@
-from itemadapter import ItemAdapter
 import json
 
 
