@@ -62,6 +62,9 @@ ROBOTSTXT_OBEY = False
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+# ITEM_PIPELINES = {
+#     "parser_fp.pipelines.ParserFpPipeline": 300
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -89,10 +92,9 @@ REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
-ITEM_PIPELINES = {
-    "parser_fp.pipelines.ParserFpPipeline": 300
+FEEDS = {
+    'exported_data/%(name)s_%(time)s.json': {
+        'format': 'json',
+        'indent': 4
+        }
 }
-
-FEED_FORMAT = "json"
-
-FEED_URI = "fixprice_data.json"
