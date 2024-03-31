@@ -4,7 +4,6 @@ from ..items import ProductItem
 from typing import List
 import datetime
 
-
 PRODUCT_MAX_COUNT = 70
 
 
@@ -28,11 +27,6 @@ class FixpriceSpider(scrapy.Spider):
     cookies = {"locality": urllib.parse.quote(
         '{"city":"Екатеринбург","cityId":55,"longitude":60.597474,"latitude":56.838011,"prefix":"г"}')}
 
-    # создаем список категорий
-    # добавляем в него требуемые по ТЗ категории из start_urls
-    # аттрибут url приравнивае к адресу категории
-    # остальные аттрибуты оставляем дефолтными
-    # номер страницы, наполненность, список товаров для категории
     categories = []
     for url in start_urls:
         new_category = Category()
@@ -57,56 +51,35 @@ class FixpriceSpider(scrapy.Spider):
         Собирает ссылки на каждый товар из карточек товара.
         Передает их в метод parse_product для получения информации о продукте.
         """
-        # если категория не совпадает, ищем дальше
         for index, category in enumerate(self.categories):
             if category.url != response.url.split('?')[0]:
                 continue
 
-        # если совпадает, ищем div с карточками продуктов
         cards = response.css('div.product__wrapper')
 
-        # из каждой карточки в div достаем ссылку на адрес страницы продукта
         for card in cards:
             product_url = card.css(
                 'div.product__wrapper a.title::attr(href)').get()
-            # добавляем ссылку на страницу продукта в список ссылок в Категории
             self.categories[index].product_urls.append(
                 urllib.parse.urljoin(
                     base='https://fix-price.com',
                     url=product_url
                 )
             )
-        # если список ссылок страниц товаров не полон(<70),
-        # то есть, параметр is_complete = False
-        # парсим следующую страницу для Категории
         if not self.categories[index].is_complete:
-            # проверяем кол-во урлов в списке урлов со страницами товаров
-            # для текущей категории
-            # если кол-ко больше 70,
-            # то для параметра is_complete меняем флаг на True
-            # то есть, список полон
             if len(self.categories[index].product_urls) > PRODUCT_MAX_COUNT:
                 self.categories[index].is_complete = True
-            # если же кол-во собраных страниц товаров меньше 70, то
-            # переходим на следующую страницу категории и
-            # собираем ссылки страниц товаров далее
-            # также меняем аттрибут page_count  в  Категории(прибавляем 1)
             self.categories[index].page_count += 1
-            # собираем ссылки на все следующие страницы
             next_pages = response.css(
                     'a[data-component="VPaginationItem"]::attr(href)').getall()
-            # если следующие страницы есть и кол-во страниц
-            # для Категории меньше кол-ва полученных
-            # переходим на следующую страницу и повторяем для нее
-            # все действия метода parse_link снова
             if next_pages and self.categories[index].page_count < len(next_pages):
                 yield response.follow(
                     next_pages[self.categories[index].page_count],
                     callback=self.parse_link)
-        # когда собрали достаточное кол-во страниц товаров для категории,
-        # начинаем парсить их, собирать информацию о товарах
+            else:
+                self.categories[index].is_complete = True
+
         if self.categories[index].is_complete:
-            # передаем в метод parse_product объект Request по каждому адресу
             for url in self.categories[index].product_urls:
                 yield scrapy.Request(url=url, callback=self.parse_product)
 
@@ -116,6 +89,26 @@ class FixpriceSpider(scrapy.Spider):
         Извлекает информацию о каждом товаре c его страницы.
         Возвращает ее в виде объекта Item согласно заданному шаблону
         """
+        widths_of_products = response.css('div.properties p.property span.value::text').getall()
+        actual_width = ""
+        if len(widths_of_products) > 2:
+            actual_width = widths_of_products[2]
+
+        heights_of_products = response.css('div.properties p.property span.value::text').getall()
+        actual_height = ""
+        if len(heights_of_products) > 3:
+            actual_height = heights_of_products[3]
+
+        length_of_products = response.css('div.properties p.property span.value::text').getall()
+        actual_length = ""
+        if len(length_of_products) > 4:
+            actual_length = length_of_products[4]
+
+        weights_of_products = response.css('div.properties p.property span.value::text').getall()
+        actual_weight = ""
+        if len(weights_of_products) > 5:
+            actual_weight = weights_of_products[5]
+
         products_data = {
             'timestamp': datetime.datetime.now().timestamp(),
 
@@ -175,21 +168,13 @@ class FixpriceSpider(scrapy.Spider):
                     'p.property span.value::text'
                 ).get(),
 
-                'wigth': response.css(
-                    'div.properties p.property span.value::text'
-                ).getall()[3],
+                'width': actual_width,
 
-                'height': response.css(
-                    'div.properties p.property span.value::text'
-                ).getall()[-4],
+                'height': actual_height,
 
-                'length': response.css(
-                    'div.properties p.property span.value::text'
-                ).getall()[-3],
+                'length': actual_length,
 
-                'weight': response.css(
-                    'div.properties p.property span.value::text'
-                ).getall()[-2],
+                'weight': actual_weight,
 
                 'country': response.css(
                     'div.properties p.property span.value::text'
