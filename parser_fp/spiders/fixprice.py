@@ -2,6 +2,7 @@ import scrapy
 import urllib.parse
 from ..items import ProductItem
 from typing import List
+import datetime
 
 
 PRODUCT_MAX_COUNT = 70
@@ -116,7 +117,7 @@ class FixpriceSpider(scrapy.Spider):
         Возвращает ее в виде объекта Item согласно заданному шаблону
         """
         products_data = {
-            'timestamp': '',
+            'timestamp': datetime.datetime.now().timestamp(),
 
             'RPC': response.css('p.property span.value::text').get(),
 
@@ -166,7 +167,7 @@ class FixpriceSpider(scrapy.Spider):
             },
             'metadata': {
 
-                'description': response.css(
+                '__description': response.css(
                     'div.product-details div.description::text'
                 ).get(),
 
@@ -195,7 +196,9 @@ class FixpriceSpider(scrapy.Spider):
                 ).getall()[-1]
             },
 
-            'variants': ''
+            'variants': len(response.css(
+                '.product-images .swiper-slide link::attr(href)'
+            ).getall())
 
         }
         yield ProductItem(products_data)
